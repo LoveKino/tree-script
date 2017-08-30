@@ -1,0 +1,33 @@
+{
+  "name": "tree-script",
+  "version": "0.0.1",
+  "description": "A simple script for tree operations, like query and update.",
+  "main": "index.js",
+  "scripts": {
+    "test": "npm run build && mocha test/**/*.js",
+    "build": "node build/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LoveKino/tree-script.git"
+  },
+  "keywords": [
+    "tree",
+    "script"
+  ],
+  "author": "ddchen",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/LoveKino/tree-script/issues"
+  },
+  "homepage": "https://github.com/LoveKino/tree-script#readme",
+  "devDependencies": {
+    "bnfer": "0.0.6",
+    "es6-promisify": "^5.0.0",
+    "mocha": "^3.5.0"
+  },
+  "dependencies": {
+    "stream-token-parser": "0.0.4",
+    "syntaxer": "0.0.13"
+  }
+}

@@ -1,0 +1,30 @@
+# be careful: space between symbols
+
+PROGRAM := EXPRESSION_LIST
+
+EXPRESSION_LIST := EXPRESSION
+    | EXPRESSION semicolon EXPRESSION_LIST
+
+EXPRESSION := QUERY_EXPRESSION 
+    | UPDATE_EXPRESSION
+    | EPSILON
+
+UPDATE_EXPRESSION := PATH assign QUERY_EXPRESSION
+
+QUERY_EXPRESSION := ATOM_DATA
+    | variableName
+    | PATH
+    | variableName leftBracket rightBracket
+    | variableName leftBracket QUERY_EXPRESSION_LIST rightBracket
+
+QUERY_EXPRESSION_LIST := QUERY_EXPRESSION
+    | QUERY_EXPRESSION comma QUERY_EXPRESSION_LIST
+
+PATH := nodeName 
+    | nodeName PATH
+
+ATOM_DATA := true
+    | false
+    | null
+    | string
+    | number
