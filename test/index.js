@@ -63,6 +63,14 @@ let testData = [{
         var1: 10,
         add: (v1, v2) => v1 + v2
     },
+    variableStub: {
+        var1: {
+            type: 'value'
+        },
+        add: {
+            type: 'function'
+        }
+    },
     result: 23
 }, {
     code: '.a.c = 34;.a.c',
@@ -123,6 +131,15 @@ let testData = [{
     name: 'try to remove none-existed node',
     code: '- .a.b;',
     result: undefined
+}, {
+    name: 'default value for variable in stub',
+    code: 'var1',
+    variableStub: {
+        'var1': {
+            default: 10
+        }
+    },
+    result: 10
 }];
 
 describe('index', () => {
@@ -138,6 +155,7 @@ describe('index', () => {
         code,
         data = {},
         variableMap,
+        variableStub,
         result
     }) => {
         name = name || code;
@@ -146,15 +164,18 @@ describe('index', () => {
 
             let ast = parseStrToAst(code);
 
-            checkAST(ast, {
-                variableStub: variableMap
-            });
+            if (variableStub) {
+                checkAST(ast, {
+                    variableStub
+                });
+            }
 
             let value = executeAST(ast, {
                 queryByPath: tree.queryByPath,
                 setByPath: tree.setByPath,
                 removeByPath: tree.removeByPath,
-                variableMap
+                variableMap,
+                variableStub
             });
 
             assert.deepEqual(value, result);

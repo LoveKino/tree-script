@@ -34,5 +34,7 @@ module.exports = {
     T_FUNCTION: 'function',
     T_VARIABLE_NAME: 'variableName',
     T_ASSIGN: 'assign',
-    T_DELETE: 'delete'
+    T_DELETE: 'delete',
+
+    A_DEFAULT: 'default'
 };

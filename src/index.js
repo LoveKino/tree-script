@@ -15,7 +15,9 @@ let tokenTypes = require('../grammer/tokenTypes');
 
 let {
     getProductionId,
-    processTokens
+    processTokens,
+    isObject,
+    isFunction
 } = require('./util');
 
 let {
@@ -54,7 +56,9 @@ let {
     T_ASSIGN,
     T_DELETE,
     T_VARIABLE_NAME,
-    T_FUNCTION
+    T_FUNCTION,
+
+    A_DEFAULT
 } = require('./const');
 
 let parser = () => {
@@ -234,16 +238,17 @@ let checkAST = (ast, {
 
         if (midType === T_VARIABLE_NAME) {
             let varName = top.value;
+            // must exist
             if (!variableStub.hasOwnProperty(varName)) {
-                throw new Error(`missing variable ${varName}`);
+                throw new Error(`missing variable ${varName} in [${Object.keys(variableStub).join(', ')}]`);
             }
         } else if (midType === T_FUNCTION) { // function
             let {
                 funName,
                 params
             } = top.value;
-            let fun = variableStub[funName];
-            if (!fun || typeof fun !== 'function') {
+            let stub = variableStub[funName];
+            if (!isObject(stub) || stub.type !== T_FUNCTION) {
                 throw new Error(`missing function ${funName}, please check your variable map. Current variable map has keys [${Object.keys(variableStub).join(', ')}].`);
             }
             // push params
@@ -264,8 +269,27 @@ let executeAST = (ast, {
     queryByPath,
     setByPath,
     removeByPath,
-    variableMap = {}
+    variableMap = {},
+    variableStub = {},
+    skipCheck = false
 }) => {
+    // check variableStub
+
+    if (!skipCheck) {
+        for (let name in variableStub) {
+            let stub = variableStub[name];
+            // missing check
+            if (!variableMap.hasOwnProperty(name) && !stub.hasOwnProperty(A_DEFAULT)) {
+                throw new Error(`missing variable ${name} in variableMap whick keys are [${Object.keys(variableMap).join(', ')}].`);
+            }
+
+            // type match
+            if (stub.type === T_FUNCTION && !isFunction(variableMap[name])) {
+                throw new Error(`variable ${name} is not function as expected, please check your variable map. Current variable map has keys [${Object.keys(variableMap).join(', ')}].`);
+            }
+        }
+    }
+
     let open = [];
     for (let i = 0; i < ast.length; i++) {
         open.unshift({
@@ -282,8 +306,28 @@ let executeAST = (ast, {
         if (topNode.type === T_ATOM) {
             valueStack.push(topNode.value);
             open.pop();
-        } else if (topNode.type === T_VARIABLE_NAME) {
-            valueStack.push(variableMap[topNode.value]);
+        } else if (topNode.type === T_VARIABLE_NAME) { // pickup variable
+            let variableName = topNode.value;
+            let variableValue = null;
+            let stub = variableStub[variableName];
+
+            // find value or use default for variable
+            if (variableMap.hasOwnProperty(variableName)) {
+                variableValue = variableMap[variableName];
+            } else {
+                if (isObject(stub) && stub.hasOwnProperty(A_DEFAULT)) {
+                    variableValue = stub[A_DEFAULT];
+                } else {
+                    throw new Error(`missing value for variable ${variableName}.`);
+                }
+            }
+
+            // validate
+            if (isObject(stub) && isFunction(stub.validate)) {
+                stub.validate(variableValue);
+            }
+
+            valueStack.push(variableValue);
             open.pop();
         } else if (topNode.type === T_PATH) {
             valueStack.push(queryByPath(topNode.value));

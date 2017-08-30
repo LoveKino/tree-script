@@ -24,7 +24,13 @@ let processTokens = (rawTokens) => {
     return tokens;
 };
 
+let isObject = v => v && typeof v === 'object';
+
+let isFunction = v => typeof v === 'function';
+
 module.exports = {
     getProductionId,
-    processTokens
+    processTokens,
+    isObject,
+    isFunction
 };
