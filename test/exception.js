@@ -34,7 +34,7 @@ describe('exception', () => {
     });
 
     it('wrong type', (done) => {
-        let ast = parseStrToAst('plus(.a.b.c, 10)');
+        let ast = parseStrToAst('- .a ; plus(.a.b.c, 10)');
         try {
             let variableStub = {
                 plus: {
@@ -72,6 +72,41 @@ describe('exception', () => {
             });
         } catch (err) {
             assert.equal(err.toString(), 'Error: missing variable plus in variableMap whick keys are [].');
+            done();
+        }
+    });
+
+    it('assert in runtime', (done) => {
+        let ast = parseStrToAst('.a.b=num');
+        try {
+            let variableStub = {
+                num: {
+                    assert: (v) => {
+                        if (v < 10) {
+                            throw new Error('num must less than 10');
+                        }
+                    }
+                }
+            };
+            checkAST(ast, {
+                variableStub
+            });
+
+            executeAST(ast, {
+                variableStub,
+                variableMap: {
+                    num: 3
+                }
+            });
+
+            executeAST(ast, {
+                variableStub,
+                variableMap: {
+                    num: 12
+                }
+            });
+        } catch (err) {
+            assert.equal(err.toString(), 'Error: num must less than 10');
             done();
         }
     });

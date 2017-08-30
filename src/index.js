@@ -315,16 +315,12 @@ let executeAST = (ast, {
             if (variableMap.hasOwnProperty(variableName)) {
                 variableValue = variableMap[variableName];
             } else {
-                if (isObject(stub) && stub.hasOwnProperty(A_DEFAULT)) {
-                    variableValue = stub[A_DEFAULT];
-                } else {
-                    throw new Error(`missing value for variable ${variableName}.`);
-                }
+                variableValue = stub[A_DEFAULT];
             }
 
-            // validate
-            if (isObject(stub) && isFunction(stub.validate)) {
-                stub.validate(variableValue);
+            // assert
+            if (isObject(stub) && isFunction(stub.assert)) {
+                stub.assert(variableValue);
             }
 
             valueStack.push(variableValue);
