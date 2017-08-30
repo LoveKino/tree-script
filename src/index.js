@@ -226,10 +226,10 @@ let parser = () => {
 let checkAST = (ast, {
     variableStub = {}
 } = {}) => {
-    let open = [ast];
+    let open = ast.slice(0);
 
     while (open.length) {
-        let top = ast.pop();
+        let top = open.pop();
         let midType = top.type;
 
         if (midType === T_VARIABLE_NAME) {
@@ -251,6 +251,11 @@ let checkAST = (ast, {
             for (let i = 0; i < paramLen; i++) {
                 open.push(params[i]);
             }
+        } else if (midType === T_ASSIGN) {
+            open.push(top.value.path);
+            open.push(top.value.value);
+        } else if (midType === T_DELETE) {
+            open.push(top.value.path);
         }
     }
 };

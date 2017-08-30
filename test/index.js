@@ -2,6 +2,7 @@
 
 let {
     parseStrToAst,
+    checkAST,
     executeAST
 } = require('..');
 
@@ -94,6 +95,34 @@ let testData = [{
         }
     },
     result: undefined
+}, {
+    code: 'f()',
+    variableMap: {
+        f: () => 847
+    },
+    result: 847
+}, {
+    name: 'query missing',
+    code: '.a.b.c',
+    data: {
+        a: 10
+    },
+    result: undefined
+}, {
+    name: 'default set none obj',
+    code: '.a.b.c=10;.a',
+    data: {
+        a: 7
+    },
+    result: {
+        b: {
+            c: 10
+        }
+    }
+}, {
+    name: 'try to remove none-existed node',
+    code: '- .a.b;',
+    result: undefined
 }];
 
 describe('index', () => {
@@ -115,7 +144,13 @@ describe('index', () => {
         it(name, () => {
             let tree = JsonTree(data);
 
-            let value = executeAST(parseStrToAst(code), {
+            let ast = parseStrToAst(code);
+
+            checkAST(ast, {
+                variableStub: variableMap
+            });
+
+            let value = executeAST(ast, {
                 queryByPath: tree.queryByPath,
                 setByPath: tree.setByPath,
                 removeByPath: tree.removeByPath,
