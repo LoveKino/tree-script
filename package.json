@@ -1,6 +1,6 @@
 {
   "name": "tree-script",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A simple script for tree operations, like query and update.",
   "main": "index.js",
   "scripts": {
