@@ -73,7 +73,7 @@ let testData = [{
     name: 'test semicolon',
     code: ';;;;;',
     result: undefined
-},{
+}, {
     code: '.a;.b',
     data: {
         a: 1,
@@ -86,6 +86,14 @@ let testData = [{
         add: (v1, v2) => v1 + v2
     },
     result: 3
+}, {
+    code: '- .a.b; .a.b',
+    data: {
+        a: {
+            b: [1, 2, 3]
+        }
+    },
+    result: undefined
 }];
 
 describe('index', () => {
@@ -110,6 +118,7 @@ describe('index', () => {
             let value = executeAST(parseStrToAst(code), {
                 queryByPath: tree.queryByPath,
                 setByPath: tree.setByPath,
+                removeByPath: tree.removeByPath,
                 variableMap
             });
 

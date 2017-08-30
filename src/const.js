@@ -9,6 +9,7 @@ module.exports = {
     P_EXPRESSION_2: 'EXPRESSION := ',
 
     P_UPDATE_EXPRESSION_0: 'UPDATE_EXPRESSION := PATH assign QUERY_EXPRESSION',
+    P_UPDATE_EXPRESSION_1: 'UPDATE_EXPRESSION := delete PATH',
 
     P_QUERY_EXPRESSION_0: 'QUERY_EXPRESSION := ATOM_DATA',
     P_QUERY_EXPRESSION_1: 'QUERY_EXPRESSION := variableName',
@@ -32,5 +33,6 @@ module.exports = {
     T_PATH: 'path',
     T_FUNCTION: 'function',
     T_VARIABLE_NAME: 'variableName',
-    T_ASSIGN: 'assign'
+    T_ASSIGN: 'assign',
+    T_DELETE: 'delete'
 };

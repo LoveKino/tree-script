@@ -79,6 +79,11 @@ module.exports = [
     },
     {
         priority: 1,
+        match: '-',
+        name: 'delete'
+    },
+    {
+        priority: 1,
         match: ';',
         name: 'semicolon'
     },

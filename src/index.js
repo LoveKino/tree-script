@@ -29,6 +29,7 @@ let {
     P_EXPRESSION_2,
 
     P_UPDATE_EXPRESSION_0,
+    P_UPDATE_EXPRESSION_1,
 
     P_QUERY_EXPRESSION_0,
     P_QUERY_EXPRESSION_1,
@@ -51,6 +52,7 @@ let {
     T_ATOM,
     T_PATH,
     T_ASSIGN,
+    T_DELETE,
     T_VARIABLE_NAME,
     T_FUNCTION
 } = require('./const');
@@ -93,6 +95,15 @@ let parser = () => {
                         value: {
                             path: midNode.children[0].value,
                             value: midNode.children[2].value
+                        }
+                    };
+                    break;
+
+                case P_UPDATE_EXPRESSION_1:
+                    midNode.value = {
+                        type: T_DELETE,
+                        value: {
+                            path: midNode.children[1].value,
                         }
                     };
                     break;
@@ -247,6 +258,7 @@ let checkAST = (ast, {
 let executeAST = (ast, {
     queryByPath,
     setByPath,
+    removeByPath,
     variableMap = {}
 }) => {
     let open = [];
@@ -311,6 +323,13 @@ let executeAST = (ast, {
                     visited: false
                 });
             }
+        } else if (topNode.type === T_DELETE) {
+            let {
+                path
+            } = topNode.value;
+
+            removeByPath(path.value);
+            open.pop();
         }
     }
 
