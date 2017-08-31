@@ -28,9 +28,12 @@ let isObject = v => v && typeof v === 'object';
 
 let isFunction = v => typeof v === 'function';
 
+let isString = v => typeof v === 'string';
+
 module.exports = {
     getProductionId,
     processTokens,
     isObject,
-    isFunction
+    isFunction,
+    isString
 };

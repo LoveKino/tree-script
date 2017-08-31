@@ -10,6 +10,7 @@ module.exports = {
 
     P_UPDATE_EXPRESSION_0: 'UPDATE_EXPRESSION := PATH assign QUERY_EXPRESSION',
     P_UPDATE_EXPRESSION_1: 'UPDATE_EXPRESSION := delete PATH',
+    P_UPDATE_EXPRESSION_2: 'UPDATE_EXPRESSION := append PATH assign QUERY_EXPRESSION',
 
     P_QUERY_EXPRESSION_0: 'QUERY_EXPRESSION := ATOM_DATA',
     P_QUERY_EXPRESSION_1: 'QUERY_EXPRESSION := variableName',
@@ -22,6 +23,8 @@ module.exports = {
 
     P_PATH_0: 'PATH := nodeName',
     P_PATH_1: 'PATH := nodeName PATH',
+    P_PATH_2: 'PATH := nodeNameVariable',
+    P_PATH_3: 'PATH := nodeNameVariable PATH',
 
     P_ATOM_DATA_0: 'ATOM_DATA := true',
     P_ATOM_DATA_1: 'ATOM_DATA := false',
@@ -35,6 +38,9 @@ module.exports = {
     T_VARIABLE_NAME: 'variableName',
     T_ASSIGN: 'assign',
     T_DELETE: 'delete',
+    T_APPEND: 'append',
+    T_NODE_NAME: 'nodeName',
+    T_NODE_NAME_VARIABLE: 'nodeNameVariable',
 
     A_DEFAULT: 'default'
 };

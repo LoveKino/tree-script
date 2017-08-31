@@ -130,13 +130,47 @@ let testData = [{
 }, {
     name: 'try to remove none-existed node',
     code: '- .a.b;',
-    result: undefined
+    result: {
+        operationType: 'delete',
+        resultType: 'remove_none_exist',
+        path: ['a', 'b']
+    }
 }, {
     name: 'default value for variable in stub',
     code: 'var1',
     variableStub: {
         'var1': {
             default: 10
+        }
+    },
+    result: 10
+}, {
+    code: '.a.[wh]',
+    data: {
+        a: {
+            b: 22
+        }
+    },
+    variableMap: {
+        wh: 'b'
+    },
+    result: 22
+}, {
+    name: 'variableInPath',
+    code: '.a.[var1].[var2]=26;.a.b.c',
+    variableMap: {
+        var1: 'b',
+        var2: 'c'
+    },
+    result: 26
+}, {
+    name: 'append',
+    code: '+ .a.b=10;f(.a.b)',
+    variableMap: {
+        f: (v) => {
+            let keys = Object.keys(v);
+            assert.equal(keys.length, 1);
+            return v[keys[0]];
         }
     },
     result: 10
@@ -174,6 +208,7 @@ describe('index', () => {
                 queryByPath: tree.queryByPath,
                 setByPath: tree.setByPath,
                 removeByPath: tree.removeByPath,
+                appendByPath: tree.appendByPath,
                 variableMap,
                 variableStub
             });

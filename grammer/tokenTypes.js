@@ -29,13 +29,28 @@ let whitespace = union(' ', '\f', '\n', '\r', '\t', '\v', '\u00a0', '\u1680', '\
 // .0
 // ._
 let nodeName = g(sequence(
-    union('.'),
-    circle(union('_', range('a', 'z'), range('A', 'Z'), range('0', '9')))
+    '.',
+    union('_', '%', range('a', 'z'), range('A', 'Z'), range('0', '9')),
+    circle(union('_', '%', range('a', 'z'), range('A', 'Z'), range('0', '9')))
 ));
 
 let variableName = g(sequence(
     union('_', range('a', 'z'), range('A', 'Z')),
     circle(union('_', range('a', 'z'), range('A', 'Z'), range('0', '9')))
+));
+
+let nodeNameVariable = g(sequence(
+    '.',
+    '[',
+
+    circle(whitespace, g(sequence(
+        union('_', range('a', 'z'), range('A', 'Z')),
+
+        circle(union('_', range('a', 'z'), range('A', 'Z'), range('0', '9')),
+            circle(whitespace,
+                g(c(']'))
+            ),
+        ))))
 ));
 
 module.exports = [
@@ -69,6 +84,11 @@ module.exports = [
     },
     {
         priority: 1,
+        match: buildFSM(nodeNameVariable),
+        name: 'nodeNameVariable'
+    },
+    {
+        priority: 1,
         match: buildFSM(variableName),
         name: 'variableName'
     },
@@ -81,6 +101,11 @@ module.exports = [
         priority: 1,
         match: '-',
         name: 'delete'
+    },
+    {
+        priority: 1,
+        match: '+',
+        name: 'append'
     },
     {
         priority: 1,

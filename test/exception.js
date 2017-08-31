@@ -110,4 +110,45 @@ describe('exception', () => {
             done();
         }
     });
+
+    it('', (done) => {
+        let ast = parseStrToAst('.a.[ma]');
+        try {
+            let variableStub = {
+                ma: {
+                    type: 'function'
+                }
+            };
+            checkAST(ast, {
+                variableStub
+            });
+        } catch (err) {
+            assert.equal(err.toString(), 'Error: missing type attribute nodeNameVariable for ma, please check your variable map. Current variable map has keys [ma].');
+            done();
+        }
+    });
+
+    it('', (done) => {
+        let ast = parseStrToAst('.a.[ma]');
+        try {
+            let variableStub = {
+                ma: {
+                    type: 'nodeNameVariable'
+                }
+            };
+            checkAST(ast, {
+                variableStub
+            });
+
+            executeAST(ast, {
+                variableStub,
+                variableMap: {
+                    ma: 1
+                }
+            });
+        } catch (err) {
+            assert.equal(err.toString(), 'Error: variable ma is not string as expected, please check your variable map. Current variable map has keys [ma].');
+            done();
+        }
+    });
 });

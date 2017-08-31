@@ -11,6 +11,7 @@ EXPRESSION := QUERY_EXPRESSION
 
 UPDATE_EXPRESSION := PATH assign QUERY_EXPRESSION
     | delete PATH
+    | append PATH assign QUERY_EXPRESSION
 
 QUERY_EXPRESSION := ATOM_DATA
     | variableName
@@ -23,6 +24,8 @@ QUERY_EXPRESSION_LIST := QUERY_EXPRESSION
 
 PATH := nodeName 
     | nodeName PATH
+    | nodeNameVariable
+    | nodeNameVariable PATH
 
 ATOM_DATA := true
     | false

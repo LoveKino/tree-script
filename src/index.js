@@ -1,293 +1,44 @@
 'use strict';
 
-let streamTokenSpliter = require('stream-token-parser');
-
 let {
-    LR
-} = require('syntaxer');
-
-let {
-    ACTION,
-    GOTO
-} = require('../res/lr1Table');
-
-let tokenTypes = require('../grammer/tokenTypes');
-
-let {
-    getProductionId,
-    processTokens,
     isObject,
     isFunction
 } = require('./util');
 
+let parser = require('./parser');
 let {
-    P_PROGRAM,
+    checkAST,
+    runTimeCheck
+} = require('./check');
 
-    P_EXPRESSION_LIST_0,
-    P_EXPRESSION_LIST_1,
-
-    P_EXPRESSION_0,
-    P_EXPRESSION_1,
-    P_EXPRESSION_2,
-
-    P_UPDATE_EXPRESSION_0,
-    P_UPDATE_EXPRESSION_1,
-
-    P_QUERY_EXPRESSION_0,
-    P_QUERY_EXPRESSION_1,
-    P_QUERY_EXPRESSION_2,
-    P_QUERY_EXPRESSION_3,
-    P_QUERY_EXPRESSION_4,
-
-    P_QUERY_EXPRESSION_LIST_0,
-    P_QUERY_EXPRESSION_LIST_1,
-
-    P_PATH_0,
-    P_PATH_1,
-
-    P_ATOM_DATA_0,
-    P_ATOM_DATA_1,
-    P_ATOM_DATA_2,
-    P_ATOM_DATA_3,
-    P_ATOM_DATA_4,
-
+let {
     T_ATOM,
     T_PATH,
     T_ASSIGN,
     T_DELETE,
+    T_APPEND,
     T_VARIABLE_NAME,
     T_FUNCTION,
+    T_NODE_NAME,
+    T_NODE_NAME_VARIABLE,
 
     A_DEFAULT
 } = require('./const');
-
-let parser = () => {
-    let tokenSpliter = streamTokenSpliter.parser(tokenTypes);
-
-    // TODO optimization AST
-    let lrParse = LR(ACTION, GOTO, {
-        // when reduce prodcution, translate at the sametime
-        reduceHandler: (production, midNode) => {
-            switch (getProductionId(production)) {
-                case P_PROGRAM:
-                    midNode.value = midNode.children[0].value;
-                    break;
-
-                case P_EXPRESSION_LIST_0:
-                    midNode.value = midNode.children[0].value === null ? [] : [midNode.children[0].value];
-                    break;
-
-                case P_EXPRESSION_LIST_1:
-                    midNode.value = (midNode.children[0].value === null ? [] : [midNode.children[0].value]).concat(midNode.children[2].value);
-                    break;
-
-                case P_EXPRESSION_0:
-                    midNode.value = midNode.children[0].value;
-                    break;
-
-                case P_EXPRESSION_1:
-                    midNode.value = midNode.children[0].value;
-                    break;
-
-                case P_EXPRESSION_2: // empty situation
-                    midNode.value = null;
-                    break;
-
-                case P_UPDATE_EXPRESSION_0:
-                    midNode.value = {
-                        type: T_ASSIGN,
-                        value: {
-                            path: midNode.children[0].value,
-                            value: midNode.children[2].value
-                        }
-                    };
-                    break;
-
-                case P_UPDATE_EXPRESSION_1:
-                    midNode.value = {
-                        type: T_DELETE,
-                        value: {
-                            path: midNode.children[1].value,
-                        }
-                    };
-                    break;
-
-                case P_QUERY_EXPRESSION_0:
-                    midNode.value = midNode.children[0].value;
-                    break;
-
-                case P_QUERY_EXPRESSION_1:
-                    midNode.value = {
-                        type: T_VARIABLE_NAME,
-                        value: midNode.children[0].token.text
-                    };
-                    break;
-
-                case P_QUERY_EXPRESSION_2:
-                    midNode.value = midNode.children[0].value;
-                    break;
-
-                case P_QUERY_EXPRESSION_3:
-                    midNode.value = {
-                        type: T_FUNCTION,
-                        value: {
-                            funName: midNode.children[0].token.text,
-                            params: []
-                        }
-                    };
-                    break;
-
-                case P_QUERY_EXPRESSION_4:
-                    midNode.value = {
-                        type: 'function',
-                        value: {
-                            funName: midNode.children[0].token.text,
-                            params: midNode.children[2].value
-                        }
-                    };
-                    break;
-
-                case P_QUERY_EXPRESSION_LIST_0:
-                    midNode.value = [midNode.children[0].value];
-                    break;
-
-                case P_QUERY_EXPRESSION_LIST_1:
-                    midNode.value = [midNode.children[0].value].concat(midNode.children[2].value);
-                    break;
-
-                case P_PATH_0:
-                    midNode.value = {
-                        type: 'path',
-                        value: [midNode.children[0].token.text.substring(1)]
-                    };
-                    break;
-
-                case P_PATH_1:
-                    midNode.value = {
-                        type: T_PATH,
-                        value: [midNode.children[0].token.text.substring(1)].concat(midNode.children[1].value.value)
-                    };
-                    break;
-
-                case P_ATOM_DATA_0:
-                    midNode.value = {
-                        type: T_ATOM,
-                        value: true
-                    };
-                    break;
-
-                case P_ATOM_DATA_1:
-                    midNode.value = {
-                        type: T_ATOM,
-                        value: false
-                    };
-                    break;
-
-                case P_ATOM_DATA_2:
-                    midNode.value = {
-                        type: T_ATOM,
-                        value: null
-                    };
-                    break;
-
-                case P_ATOM_DATA_3:
-                    var text = midNode.children[0].token.text;
-                    midNode.value = {
-                        type: T_ATOM,
-                        value: text.substring(1, text.length - 1)
-                    };
-                    break;
-
-                case P_ATOM_DATA_4:
-                    var numText = midNode.children[0].token.text;
-                    midNode.value = {
-                        type: T_ATOM,
-                        value: Number(numText)
-                    };
-                    break;
-            }
-        }
-    });
-
-    // handle chunk data
-    return (chunk) => {
-        let str = chunk && chunk.toString();
-        let tokens = processTokens(tokenSpliter(str));
-
-        for (let i = 0; i < tokens.length; i++) {
-            lrParse(tokens[i]);
-        }
-
-        // means finished chunks
-        if (chunk === null) {
-            let ast = lrParse(null);
-            return ast.children[0].value;
-        }
-    };
-};
-
-// static check
-let checkAST = (ast, {
-    variableStub = {}
-} = {}) => {
-    let open = ast.slice(0);
-
-    while (open.length) {
-        let top = open.pop();
-        let midType = top.type;
-
-        if (midType === T_VARIABLE_NAME) {
-            let varName = top.value;
-            // must exist
-            if (!variableStub.hasOwnProperty(varName)) {
-                throw new Error(`missing variable ${varName} in [${Object.keys(variableStub).join(', ')}]`);
-            }
-        } else if (midType === T_FUNCTION) { // function
-            let {
-                funName,
-                params
-            } = top.value;
-            let stub = variableStub[funName];
-            if (!isObject(stub) || stub.type !== T_FUNCTION) {
-                throw new Error(`missing function ${funName}, please check your variable map. Current variable map has keys [${Object.keys(variableStub).join(', ')}].`);
-            }
-            // push params
-            let paramLen = params.length;
-            for (let i = 0; i < paramLen; i++) {
-                open.push(params[i]);
-            }
-        } else if (midType === T_ASSIGN) {
-            open.push(top.value.path);
-            open.push(top.value.value);
-        } else if (midType === T_DELETE) {
-            open.push(top.value.path);
-        }
-    }
-};
 
 let executeAST = (ast, {
     queryByPath,
     setByPath,
     removeByPath,
+    appendByPath,
     variableMap = {},
     variableStub = {},
     skipCheck = false
 }) => {
+    // TODO check params
     // check variableStub
 
     if (!skipCheck) {
-        for (let name in variableStub) {
-            let stub = variableStub[name];
-            // missing check
-            if (!variableMap.hasOwnProperty(name) && !stub.hasOwnProperty(A_DEFAULT)) {
-                throw new Error(`missing variable ${name} in variableMap whick keys are [${Object.keys(variableMap).join(', ')}].`);
-            }
-
-            // type match
-            if (stub.type === T_FUNCTION && !isFunction(variableMap[name])) {
-                throw new Error(`variable ${name} is not function as expected, please check your variable map. Current variable map has keys [${Object.keys(variableMap).join(', ')}].`);
-            }
-        }
+        runTimeCheck(variableStub, variableMap);
     }
 
     let open = [];
@@ -326,7 +77,7 @@ let executeAST = (ast, {
             valueStack.push(variableValue);
             open.pop();
         } else if (topNode.type === T_PATH) {
-            valueStack.push(queryByPath(topNode.value));
+            valueStack.push(queryByPath(resolvePath(topNode.value, variableMap)));
             open.pop();
         } else if (topNode.type === T_FUNCTION) {
             let {
@@ -359,7 +110,7 @@ let executeAST = (ast, {
 
             if (top.visited) {
                 let assignValue = valueStack.pop();
-                setByPath(path.value, assignValue);
+                valueStack.push(setByPath(resolvePath(path.value, variableMap), assignValue));
                 open.pop();
             } else {
                 top.visited = true;
@@ -373,12 +124,46 @@ let executeAST = (ast, {
                 path
             } = topNode.value;
 
-            removeByPath(path.value);
+            valueStack.push(removeByPath(resolvePath(path.value, variableMap)));
             open.pop();
+        } else if (topNode.type === T_APPEND) {
+            let {
+                path,
+                value
+            } = topNode.value;
+
+            if (top.visited) {
+                let assignValue = valueStack.pop();
+                valueStack.push(appendByPath(resolvePath(path.value, variableMap), assignValue));
+                open.pop();
+            } else {
+                top.visited = true;
+                open.push({
+                    node: value,
+                    visited: false
+                });
+            }
         }
     }
 
     return valueStack[valueStack.length - 1];
+};
+
+let resolvePath = (path, variableMap) => {
+    let ret = [];
+    for (let i = 0; i < path.length; i++) {
+        let {
+            type,
+            value
+        } = path[i];
+        if (type === T_NODE_NAME) {
+            ret.push(value);
+        } else if (type === T_NODE_NAME_VARIABLE) {
+            ret.push(variableMap[value]);
+        }
+    }
+
+    return ret;
 };
 
 let parseStrToAst = (str) => {
