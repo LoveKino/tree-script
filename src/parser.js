@@ -230,7 +230,7 @@ module.exports = () => {
                     var text = midNode.children[0].token.text;
                     midNode.value = {
                         type: T_ATOM,
-                        value: text.substring(1, text.length - 1)
+                        value: JSON.parse(text)
                     };
                     break;
 
