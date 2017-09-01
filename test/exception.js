@@ -81,7 +81,7 @@ describe('exception', () => {
         try {
             let variableStub = {
                 num: {
-                    assert: (v) => {
+                    validate: (v) => {
                         if (v < 10) {
                             throw new Error('num must less than 10');
                         }

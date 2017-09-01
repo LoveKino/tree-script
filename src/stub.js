@@ -1,5 +1,8 @@
 'use strict';
 
+
+// TODO reuse pfc-compiler
+
 let {
     isObject,
     isFunction,
@@ -16,6 +19,20 @@ let {
 
     A_DEFAULT
 } = require('./const');
+
+/**
+ *
+ * variableStub = {
+ *    [variableName]: {
+ *       type,
+ *       default,  // default value of variable
+ *       validate // function used to check dynamic
+ *    }
+ * }
+ *
+ *
+ * TODO restraints checking
+ */
 
 // static check
 let checkAST = (ast, {
@@ -90,7 +107,29 @@ let runTimeCheck = (variableStub, variableMap) => {
     }
 };
 
+let getVariable = (name, variableMap, variableStub) => {
+    let stub = variableStub[name] || {};
+    let value = null;
+    if (variableMap.hasOwnProperty(name)) {
+        value = variableMap[name];
+    } else {
+        // try to using default
+        if (!stub.hasOwnProperty(A_DEFAULT)) {
+            throw new Error(`missing variable ${name}.`);
+        } else {
+            value = stub[A_DEFAULT];
+        }
+    }
+
+    if (isObject(stub) && isFunction(stub.validate)) { // dynamic validation
+        stub.validate(value);
+    }
+
+    return value;
+};
+
 module.exports = {
     checkAST,
-    runTimeCheck
+    runTimeCheck,
+    getVariable
 };

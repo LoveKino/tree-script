@@ -1,15 +1,11 @@
 'use strict';
 
-let {
-    isObject,
-    isFunction
-} = require('./util');
-
 let parser = require('./parser');
 let {
     checkAST,
-    runTimeCheck
-} = require('./check');
+    runTimeCheck,
+    getVariable
+} = require('./stub');
 
 let {
     T_ATOM,
@@ -20,9 +16,7 @@ let {
     T_VARIABLE_NAME,
     T_FUNCTION,
     T_NODE_NAME,
-    T_NODE_NAME_VARIABLE,
-
-    A_DEFAULT
+    T_NODE_NAME_VARIABLE
 } = require('./const');
 
 let executeAST = (ast, {
@@ -59,21 +53,7 @@ let executeAST = (ast, {
             open.pop();
         } else if (topNode.type === T_VARIABLE_NAME) { // pickup variable
             let variableName = topNode.value;
-            let variableValue = null;
-            let stub = variableStub[variableName];
-
-            // find value or use default for variable
-            if (variableMap.hasOwnProperty(variableName)) {
-                variableValue = variableMap[variableName];
-            } else {
-                variableValue = stub[A_DEFAULT];
-            }
-
-            // assert
-            if (isObject(stub) && isFunction(stub.assert)) {
-                stub.assert(variableValue);
-            }
-
+            let variableValue = getVariable(variableName, variableMap, variableStub);
             valueStack.push(variableValue);
             open.pop();
         } else if (topNode.type === T_PATH) {
