@@ -3,19 +3,21 @@
 
 // TODO reuse pfc-compiler
 
-let {
+const {
     isObject,
     isFunction,
     isString
 } = require('./util');
 
-let {
+const {
     T_ASSIGN,
     T_DELETE,
     T_VARIABLE_NAME,
     T_FUNCTION,
     T_PATH,
     T_NODE_NAME_VARIABLE,
+    T_EXPRESSION_LIST,
+    T_CONDITION,
 
     A_DEFAULT
 } = require('./const');
@@ -38,13 +40,21 @@ let {
 let checkAST = (ast, {
     variableStub = {}
 } = {}) => {
-    let open = ast.slice(0);
+    let open = [ast];
 
     while (open.length) {
         let top = open.pop();
         let midType = top.type;
 
-        if (midType === T_VARIABLE_NAME) {
+        if (midType === T_EXPRESSION_LIST) {
+            for (let i = 0; i < top.value.length; i++) {
+                open.unshift(top.value[i]);
+            }
+        } else if (midType === T_CONDITION) {
+            open.push(top.value.condition);
+            open.push(top.value.branch1);
+            open.push(top.value.branch2);
+        } else if (midType === T_VARIABLE_NAME) {
             let varName = top.value;
             // must exist
             if (!variableStub.hasOwnProperty(varName)) {

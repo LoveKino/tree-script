@@ -1,13 +1,14 @@
 'use strict';
 
-let parser = require('./parser');
-let {
+const parser = require('./parser');
+const {
     checkAST,
     runTimeCheck,
     getVariable
 } = require('./stub');
 
-let {
+const {
+    T_CONDITION,
     T_ATOM,
     T_PATH,
     T_ASSIGN,
@@ -16,10 +17,11 @@ let {
     T_VARIABLE_NAME,
     T_FUNCTION,
     T_NODE_NAME,
-    T_NODE_NAME_VARIABLE
+    T_NODE_NAME_VARIABLE,
+    T_EXPRESSION_LIST
 } = require('./const');
 
-let executeAST = (ast, {
+const executeAST = (ast, {
     queryByPath,
     setByPath,
     removeByPath,
@@ -35,20 +37,65 @@ let executeAST = (ast, {
         runTimeCheck(variableStub, variableMap);
     }
 
-    let open = [];
-    for (let i = 0; i < ast.length; i++) {
-        open.unshift({
-            node: ast[i],
-            visited: false
-        });
-    }
-
+    let open = [{
+        node: ast,
+        visited: false
+    }];
     let valueStack = [];
 
     while (open.length) {
         let top = open[open.length - 1];
         let topNode = top.node;
-        if (topNode.type === T_ATOM) {
+
+        if (topNode.type === T_EXPRESSION_LIST) {
+            if (top.visited) {
+                // get value from value stack
+                let expValues = [];
+                for (let i = 0; i < topNode.value.length; i++) {
+                    expValues.unshift(valueStack.pop());
+                }
+                valueStack.push(expValues[expValues.length - 1]);
+                open.pop();
+            } else {
+                top.visited = true;
+                for (let i = topNode.value.length - 1; i >= 0; i--) {
+                    open.push({
+                        node: topNode.value[i],
+                        visited: false
+                    });
+                }
+            }
+        } else if (topNode.type === T_CONDITION) {
+            const {
+                condition,
+                branch1,
+                branch2
+            } = topNode.value;
+            // resolve condition and then decide to run which branch
+            if (top.visited === false) {
+                top.visited = 'condition';
+                open.push({
+                    node: condition,
+                    visited: false
+                });
+            } else if (top.visited === 'condition') {
+                top.visited = 'branch';
+                const conditionRet = valueStack.pop();
+                if (conditionRet) {
+                    open.push({
+                        node: branch1,
+                        visited: false
+                    });
+                } else {
+                    open.push({
+                        node: branch2,
+                        visited: false
+                    });
+                }
+            } else if (top.visited === 'branch') {
+                open.pop();
+            }
+        } else if (topNode.type === T_ATOM) {
             valueStack.push(topNode.value);
             open.pop();
         } else if (topNode.type === T_VARIABLE_NAME) { // pickup variable
@@ -71,6 +118,7 @@ let executeAST = (ast, {
                 for (let i = 0; i < params.length; i++) {
                     paramValues.push(valueStack.pop());
                 }
+                // TODO missing funName as function exception
                 valueStack.push(variableMap[funName](...paramValues));
                 open.pop();
             } else {

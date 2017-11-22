@@ -114,6 +114,11 @@ module.exports = [
     },
     {
         priority: 1,
+        match: ':',
+        name: 'colon'
+    },
+    {
+        priority: 1,
         match: '(',
         name: 'leftBracket'
     },
@@ -126,6 +131,21 @@ module.exports = [
         priority: 1,
         match: ',',
         name: 'comma'
+    },
+    {
+        priority: 1,
+        match: '{',
+        name: 'leftBrace'
+    },
+    {
+        priority: 1,
+        match: '}',
+        name: 'rightBrace'
+    },
+    {
+        priority: 1,
+        match: '?',
+        name: 'questionMark'
     },
     {
         priority: 1,

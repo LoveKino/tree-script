@@ -1,20 +1,20 @@
 'use strict';
 
-let streamTokenSpliter = require('stream-token-parser');
-let {
+const streamTokenSpliter = require('stream-token-parser');
+const {
     LR
 } = require('syntaxer');
-let {
+const {
     getProductionId,
     processTokens,
 } = require('./util');
-let tokenTypes = require('../grammer/tokenTypes');
-let {
+const tokenTypes = require('../grammer/tokenTypes');
+const {
     ACTION,
     GOTO
 } = require('../res/lr1Table');
 
-let {
+const {
     P_PROGRAM,
 
     P_EXPRESSION_LIST_0,
@@ -23,6 +23,10 @@ let {
     P_EXPRESSION_0,
     P_EXPRESSION_1,
     P_EXPRESSION_2,
+    P_EXPRESSION_3,
+    P_EXPRESSION_4,
+
+    P_CONDITION_EXPRESSION,
 
     P_UPDATE_EXPRESSION_0,
     P_UPDATE_EXPRESSION_1,
@@ -48,6 +52,8 @@ let {
     P_ATOM_DATA_3,
     P_ATOM_DATA_4,
 
+    T_EXPRESSION_LIST,
+    T_CONDITION,
     T_ATOM,
     T_PATH,
     T_ASSIGN,
@@ -68,7 +74,10 @@ module.exports = () => {
         reduceHandler: (production, midNode) => {
             switch (getProductionId(production)) {
                 case P_PROGRAM:
-                    midNode.value = midNode.children[0].value;
+                    midNode.value = {
+                        type: T_EXPRESSION_LIST,
+                        value: midNode.children[0].value
+                    };
                     break;
 
                 case P_EXPRESSION_LIST_0:
@@ -89,6 +98,24 @@ module.exports = () => {
 
                 case P_EXPRESSION_2: // empty situation
                     midNode.value = null;
+                    break;
+
+                case P_EXPRESSION_3: // {program}
+                    midNode.value = midNode.children[1].value;
+                    break;
+                case P_EXPRESSION_4:
+                    midNode.value = midNode.children[0].value;
+                    break;
+
+                case P_CONDITION_EXPRESSION:
+                    midNode.value = {
+                        type: T_CONDITION,
+                        value: {
+                            condition: midNode.children[0].value,
+                            branch1: midNode.children[2].value,
+                            branch2: midNode.children[4].value
+                        }
+                    };
                     break;
 
                 case P_UPDATE_EXPRESSION_0:

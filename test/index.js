@@ -174,6 +174,82 @@ let testData = [{
         }
     },
     result: 10
+}, {
+    code: '{.a.b}',
+    data: {
+        a: {
+            b: 22
+        }
+    },
+    variableMap: {},
+    result: 22
+}, {
+    code: '{.a.b; .a.c;}',
+    data: {
+        a: {
+            b: 22,
+            c: 5
+        }
+    },
+    variableMap: {},
+    result: 5
+}, {
+    code: '.a;{.a.b; .a.c;};.a.d',
+    data: {
+        a: {
+            b: 22,
+            c: 5,
+            d: 8
+        }
+    },
+    variableMap: {},
+    result: 8
+}, {
+    code: '.a? .b: .c',
+    data: {
+        a: 1,
+        b: 2,
+        c: 3
+    },
+    variableMap: {},
+    result: 2
+}, {
+    code: 'sub(.a)? .b: .c',
+    data: {
+        a: 1,
+        b: 2,
+        c: 3
+    },
+    variableMap: {
+        sub: (v) => v - 1
+    },
+    result: 3
+}, {
+    name: 'nested condition expression',
+    code: '.a ? {.b=0; .b? 5: .c}: 20',
+    data: {
+        a: 1,
+        b: 2,
+        c: 3
+    },
+    variableMap: {},
+    result: 3
+}, {
+    name: 'lazy for condition expression',
+    code: '.a? .b=30: .b=20;.b',
+    data: {
+        a: 1
+    },
+    variableMap: {},
+    result: 30
+}, {
+    name: 'lazy for condition expression2',
+    code: '.a? .b=30: .b=20;.b',
+    data: {
+        a: 0
+    },
+    variableMap: {},
+    result: 20
 }];
 
 describe('index', () => {
